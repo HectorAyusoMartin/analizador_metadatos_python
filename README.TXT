@@ -22,6 +22,13 @@ correctamente la extracción de los metadatos dependiendo del tipo de archivo.
 Los resultados de la extracción serán mostrados por consola, sin demasiado procesamiento de datos
 final.
 
+===Actualización===
+
+Ahora es posible ejecutarlo desde la linea de comandos con uso de argumentos, ejecutando cli.py
+Ejemplo de uso:
+
+python cli.py extraer --file "documento_a_extraer.EXTENSION"
+
 
 
 
