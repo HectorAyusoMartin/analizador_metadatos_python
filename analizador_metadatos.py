@@ -103,6 +103,8 @@ class DocxMetadataExtractor(MetadataExtractor):
         ]
         
         metadata = {attr: getattr(prop, attr, None) for attr in attributes}
+        return metadata
+        
         
         
     
@@ -113,11 +115,16 @@ class MetadataExtractorFactory:
     def get_extractor(filepath):
         
         tipo_de_archivo, _ = mimetypes.guess_type(filepath)
+        
         if tipo_de_archivo:
             if tipo_de_archivo.startswith('image'):
                 return ImageMetadataExtractor()
             if tipo_de_archivo == 'application/pdf':
                 return PdfMetadataExtractor()
+            if tipo_de_archivo == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+                return DocxMetadataExtractor()
+            
+        raise ValueError('Formato de archivo no soportado')
             
     @staticmethod      
     def extract_metadata(filepath):
