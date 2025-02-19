@@ -2,3 +2,5 @@ pillow
 mimetypes
 pdfminer.six
 python-docx
+rich
+

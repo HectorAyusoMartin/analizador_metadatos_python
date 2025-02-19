@@ -1,11 +1,16 @@
 from abc import ABC, abstractmethod
-from PIL import Image
+from PIL import Image , ExifTags
 import mimetypes
 from pdfminer.high_level import extract_text
 from pdfminer.pdfparser import PDFParser
 from pdfminer.pdfdocument import PDFDocument
 import re
 import docx
+
+def convert_to_degrees(value):
+    """Convierte un valor de coordenadas en grados, minutos y segundos a grados decimales"""
+    grados , minutos , segundos = value
+    return grados + minutos / 60.0 + segundos /3600.0
 
 
 class MetadataExtractor(ABC):
@@ -25,12 +30,44 @@ class ImageMetadataExtractor(MetadataExtractor):
                 exif = img._getexif()
                 
                 if exif:
-                    return {Image.ExifTags.TAGS.get(key, key): value
-                            for key , value in exif.items() if key in Image.ExifTags.TAGS}
+                    #Convertimos las keys a nombres legibles
+                    metadata = {ExifTags.TAGS.get(key, key): value
+                                for key, value in exif.items() if key in ExifTags.TAGS}
                     
-                       
-                else: 
+                    #Si no hay informacion GPS, exatremos y convertimos las coordenadas
+                    gps_info = metadata.get('GPSInfo')
+                    
+                    if gps_info:
+                        #Obtenemos la información necesaria del GPS
+                        lat_ref = gps_info.get(1)
+                        lat_tuple = gps_info.get(2)
+                        lon_ref = gps_info.get(3)
+                        lon_tuple = gps_info.get(4)
+                        
+                        if lat_ref and lat_tuple and lon_ref and lon_tuple:
+                            
+                            lat = convert_to_degrees(lat_tuple)
+                            lon = convert_to_degrees(lon_tuple)
+                            
+                            #ajustamos el signo segun la referencia N S E W
+                            if lat_ref != 'N':
+                                lat = -lat
+                            if lon_ref != 'E':
+                                lon = -lon
+                                
+                            #Agregamos las coordenadas al diccionariko de metadatos
+                            metadata['Coordenadas'] = f'{lat:.6f}, {lon:.6f}'
+                            
+                            #Creamos direccion URL para copair y pegar y la agregamos al diccionario metadata
+                            metadata['Coordenadas_URL'] = f'https://www.google.com/maps/search/?api=1&query={metadata["Coordenadas"]}'
+                            
+                    return metadata
+                
+                else:
                     return {'Error' : 'No se encontraron metadatos EXIF'}
+                            
+                                
+                    
                 
             
             elif img.format in ['PNG']:
@@ -104,10 +141,6 @@ class DocxMetadataExtractor(MetadataExtractor):
         
         metadata = {attr: getattr(prop, attr, None) for attr in attributes}
         return metadata
-        
-        
-        
-    
      
 class MetadataExtractorFactory:
     @staticmethod
