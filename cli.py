@@ -82,7 +82,7 @@ def main():
     
     if hasattr(args, "func"):
         args.func(args)
-    # Si no se ingresa ningún comando, no se muestra la ayuda y se termina el programa.
+    # Si no se ingresa ningún comando, no se muestra la ayuda y se termina el programa...
     
 if __name__ == '__main__':
     main()
